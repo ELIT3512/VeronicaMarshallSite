@@ -13,11 +13,11 @@
   const go = (hash) => { window.location.hash = hash; };
   const logout = () => { localStorage.removeItem('vm_user'); setUser(null); go('#home'); };
 
-  const onLogin = (email) => {
-    const u = { email };
+  const onLogin = (email, isAdmin = false) => {
+    const u = { email, role: isAdmin ? 'admin' : 'user' };
     localStorage.setItem('vm_user', JSON.stringify(u));
     setUser(u);
-    go('#profile');
+    go(isAdmin ? '#admin' : '#profile');
   };
 
   const showHome = route === '' || route === '#home';
@@ -30,19 +30,36 @@
           {showHome ? (
             user ? (
               <>
-                <a href="#profile" className="navlink">Profile</a>
+                {(!user.role || user.role !== 'admin') && (
+                  <a href="#profile" className="navlink">Profile</a>
+                )}
+                {user.role === 'admin' && <a href="#admin" className="navlink">Admin</a>}
                 <a href="#home" className="navlink" onClick={(e)=>{e.preventDefault(); logout();}}>Logout</a>
               </>
             ) : (
-              <a href="#login" className="navlink">Login</a>
+              <>
+                <a href="#login" className="navlink">Login</a>
+                <a href="#register" className="navlink">Register</a>
+              </>
             )
           ) : (
             <>
-              <a href="#home" className="navlink">Home</a>
+              {!(user && user.role === 'admin') && (
+                <a href="#home" className="navlink">Home</a>
+              )}
               {user ? (
-                <a href="#home" className="navlink" onClick={(e)=>{e.preventDefault(); logout();}}>Logout</a>
+                <>
+                  {(!user.role || user.role !== 'admin') && (
+                    <a href="#profile" className="navlink">Profile</a>
+                  )}
+                  {user.role === 'admin' && <a href="#admin" className="navlink">Admin</a>}
+                  <a href="#home" className="navlink" onClick={(e)=>{e.preventDefault(); logout();}}>Logout</a>
+                </>
               ) : (
-                <a href="#login" className="navlink">Login</a>
+                <>
+                  <a href="#login" className="navlink">Login</a>
+                  <a href="#register" className="navlink">Register</a>
+                </>
               )}
             </>
           )}
@@ -51,7 +68,10 @@
 
       {showHome && <Home />}
       {route === '#login' && <LoginPage onLogin={onLogin} />}
+      {route === '#register' && <RegisterPage />}
       {route === '#profile' && (user ? <ProfilePage user={user} /> : <LoginRequired />)}
+      {route === '#admin' && (user && user.role === 'admin' ? <AdminProfilePage /> : <LoginRequired />)}
+      {route.startsWith('#admin/patient/') && (user && user.role === 'admin' ? <PatientAdminPage /> : <LoginRequired />)}
 
       <footer className="footer">
         {'\u00A9'} {new Date().getFullYear()} Veronica Marshell Autism Consulting
@@ -68,7 +88,7 @@ function Home() {
       <section className="hero card">
         <h1>Hello, World</h1>
         <p className="lead">
-          This page is responsive. Resize the browser or use DevTools mobile view.
+          mission statement.
         </p>
       </section>
 
