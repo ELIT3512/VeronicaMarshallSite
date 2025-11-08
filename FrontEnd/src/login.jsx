@@ -5,9 +5,17 @@ function LoginPage({ onLogin }) {
 
   const submit = (e) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) { setError('Enter email and password.'); return; }
+    const em = email.trim().toLowerCase();
+    const pw = password;
+    if (!em || !pw) { setError('Enter email and password.'); return; }
+
+    let users;
+    try { users = JSON.parse(localStorage.getItem('vm_users')) || {}; } catch { users = {}; }
+    const record = users[em];
+    if (!record) { setError('No account found. Please register first.'); return; }
+    if (record.password !== pw) { setError('Incorrect password.'); return; }
     setError('');
-    onLogin(email.trim());
+    onLogin(record.email, record.role === 'admin');
   };
 
   return (
@@ -23,6 +31,7 @@ function LoginPage({ onLogin }) {
         {error && <div className="error" role="alert">{error}</div>}
         <button className="btn primary" type="submit">Log in</button>
       </form>
+      <p className="muted small" style={{marginTop:8}}>No account? <a href="#register">Register</a></p>
     </section>
   );
 }
@@ -39,4 +48,3 @@ function LoginRequired() {
 // Expose globally for App.jsx to use
 window.LoginPage = LoginPage;
 window.LoginRequired = LoginRequired;
-
